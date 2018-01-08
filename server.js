@@ -1,22 +1,31 @@
 ﻿var express = require('express');
 var app = express();
 app.use(express.static('assets'));
-
+/*
 app.use('/store', function(req, res, next){
 	console.log('Jestem pośrednikiem przy żądaniu do /store');
     next();
 });
 
+app.get('/store', function(req, res){
+	res.send('To jest sklep')
+});
+*/
+
+
 app.get('/', function (req, res) {
     res.sendFile('/index.html');
 });
 
-app.get('/store', function(req, res){
-	res.send('To jest sklep')
-});
+app.use('/userform', function(req, res, next){
+	console.log('Zalogował się człowiek o danych: ' + req.query.first_name + ' ' + req.query.last_name);
+	next();
+})
 
-
-
+app.use('/userform', function(req, res, next){
+	(req.query.first_name ==='Maciej') && (req.query.last_name === 'Duda') ?  console.log('Masz uprawnienia Twórcy!') : console.log('Nic nie możesz :)');
+	next();
+})
 
 app.get('/userform', function (req, res) {
     const response = {
@@ -25,7 +34,6 @@ app.get('/userform', function (req, res) {
     };
     res.end(JSON.stringify(response));
 });
-
 
 var server = app.listen(3000, 'localhost', function() {
     var host = server.address().address;
