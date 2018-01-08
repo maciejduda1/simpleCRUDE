@@ -1,29 +1,55 @@
 ﻿var express = require('express');
-var bodyParser = require('body-parser');
-var fs = require('fs');
+var passport = require('passport');
+var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+var config = require('./config');
 var app = express();
-var stringifyFile;
+var googleProfile = {};
 
-app.use(bodyParser.json());
-
-app.get('/getNote', function(req, res){
-	fs.readFile('./test.json', 'utf8', function(err, data) {
-    	if (err) throw err;
-    	stringifyFile = data
-    	res.send(data);
-	});	
+passport.serializeUser(function(user, done) {
+    done(null, user);
+});
+passport.deserializeUser(function(obj, done) {
+    done(null, obj);
 });
 
-app.post('/updateNote/:note', function(req, res){
-	stringifyFile = stringifyFile + req.params.note;
-	fs.writeFile('./test.json', stringifyFile, function(err) {
-    	if (err) throw err;
-    	console.log('file updated');
-	});
+passport.use(new GoogleStrategy({
+        clientID: config.GOOGLE_CLIENT_ID,
+        clientSecret: config.GOOGLE_CLIENT_SECRET,
+        callbackURL: config.CALLBACK_URL
+    },
+    function(accessToken, refreshToken, profile, cb) {
+        googleProfile = {
+            id: profile.id,
+            displayName: profile.displayName
+        };
+        cb(null, profile);
+    }
+));
+
+
+app.set('view engine', 'pug');
+app.set('views', './views');
+app.use(passport.initialize());
+app.use(passport.session());
+
+//app.use(express.static('assets'));
+
+app.get('/', function(req, res){
+    res.render('index', { user: req.user });
 });
 
+app.get('/logged', function(req, res){
+    res.render('logged', { user: googleProfile });
+});
 
-
-
+app.get('/auth/google',
+passport.authenticate('google', {
+scope : ['profile', 'email']
+}));
+app.get('/auth/google/callback',
+    passport.authenticate('google', {
+        successRedirect : '/logged',
+        failureRedirect: '/'
+    }));
 
 app.listen(3000);
