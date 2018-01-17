@@ -8,13 +8,17 @@ app.get('/', function (req, res) {
     res.sendFile('/index.html');
 });
 
-app.use('/userform', function(req, res, next){
-	console.log('Zalogował się człowiek o danych: ' + req.query.first_name + ' ' + req.query.last_name);
+const authentication = function(req, res, next){
+    console.log('Zalogował się człowiek o danych: ' + req.query.first_name + ' ' + req.query.last_name);
     next();
-    }, function(req, res, next) { 
+};
+
+const checkPermissions = function(req, res, next) { 
     (req.query.first_name ==='Maciej') && (req.query.last_name === 'Duda') ?  console.log('Masz uprawnienia Twórcy!') : console.log('Nic nie możesz :)');
-	next();
-})
+    next();
+}
+
+app.use('/userform', authentication, checkPermissions);
 
 app.get('/userform', function (req, res) {
     const response = {
