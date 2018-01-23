@@ -18,9 +18,9 @@ const checkPermissions = function(req, res, next) {
     next();
 }
 
-app.use('/userform', authentication, checkPermissions);
+//app.use('/userform', authentication, checkPermissions);
 
-app.get('/userform', function (req, res) {
+app.get('/userform', authentication, checkPermissions, function (req, res) {
     const response = {
         first_name: req.query.first_name,
         last_name: req.query.last_name
